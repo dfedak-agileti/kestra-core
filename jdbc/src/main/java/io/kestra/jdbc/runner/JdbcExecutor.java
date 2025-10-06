@@ -642,9 +642,11 @@ public class JdbcExecutor implements ExecutorInterface {
                                                 Optional<WorkerGroup> maybeWorkerGroup = workerGroupService.resolveGroupFromJob(flow, workerTask);
                                                 String workerGroupKey = maybeWorkerGroup.map(throwFunction(workerGroup -> workerTask.getRunContext().render(workerGroup.getKey())))
                                                     .orElse(null);
-                                                workerJobQueue.emit(workerGroupKey, workerTask);
+                                                TaskRun taskRun = workerTask.getTaskRun().withState(State.Type.SUBMITTED);
+                                                workerTaskResults.add(new WorkerTaskResult(taskRun));
+                                                workerJobQueue.emit(workerGroupKey, workerTask.withTaskRun(taskRun));
                                             }
-                                            if (workerTask.getTask().isFlowable()) {
+                                            else if (workerTask.getTask().isFlowable()) {
                                                 workerTaskResults.add(new WorkerTaskResult(workerTask.getTaskRun().withState(State.Type.RUNNING)));
                                             }
                                         }
